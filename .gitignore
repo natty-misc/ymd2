@@ -1,0 +1,14 @@
+/target/
+/ffmpeg.*
+/ffprobe.*
+/ffmpeg
+/ffprobe
+/shade/
+/temp/
+/out/
+/logs
+
+/settings.cfg
+
+/.idea
+/*.iml
