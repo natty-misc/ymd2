@@ -166,10 +166,10 @@ public class AppMain extends Application
             appVersion = "???";
         }
 
-        loadFont("Amaranth-Bold");
-        loadFont("Amaranth-BoldItalic");
-        loadFont("Amaranth-Italic");
-        loadFont("Amaranth-Regular");
+        loadFont("OpenSans-Bold");
+        loadFont("OpenSans-BoldItalic");
+        loadFont("OpenSans-Italic");
+        loadFont("OpenSans-Regular");
 
         launch(args);
 
