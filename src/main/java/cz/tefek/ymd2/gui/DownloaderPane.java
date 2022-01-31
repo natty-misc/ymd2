@@ -5,19 +5,17 @@ import java.nio.file.Path;
 import java.util.Locale;
 
 import java.awt.Desktop;
-import java.io.IOException;
 import java.util.stream.Collectors;
 
 import cz.tefek.pluto.chrono.MiniTime;
 import cz.tefek.ymd2.background.progress.RetrieveProgressWatcher;
 import cz.tefek.ymd2.util.BinaryUnitUtil;
+import cz.tefek.ymd2.util.DesktopUtils;
+
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.BlurType;
@@ -29,8 +27,6 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-
-import javax.swing.*;
 
 public class DownloaderPane extends AnchorPane
 {
@@ -91,9 +87,8 @@ public class DownloaderPane extends AnchorPane
     {
         Platform.runLater(() ->
         {
-            if (observable instanceof RetrieveProgressWatcher)
+            if (observable instanceof RetrieveProgressWatcher data)
             {
-                RetrieveProgressWatcher data = (RetrieveProgressWatcher) observable;
                 this.updateComponentData(data);
             }
         });
@@ -141,22 +136,17 @@ public class DownloaderPane extends AnchorPane
 
         switch (status)
         {
-            case RETRIEVING_METADATA:
-            {
+            case RETRIEVING_METADATA -> {
                 this.title.setText("Retrieving metadata...");
 
                 this.progressBar.setVisible(true);
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
-                break;
             }
-            case QUEUED:
-            {
+            case QUEUED -> {
                 this.progressLabel.setText("Queued...");
-                break;
             }
-            case DOWNLOADING_AUDIO:
-            {
+            case DOWNLOADING_AUDIO -> {
                 var downloaded = data.getBytesTransfered();
                 var downloadedStr = BinaryUnitUtil.formatAsBinaryBytes(downloaded);
                 var fileSize = data.getFileSize();
@@ -168,10 +158,8 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setVisible(true);
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(progress);
-                break;
             }
-            case DOWNLOADING_VIDEO:
-            {
+            case DOWNLOADING_VIDEO -> {
                 var downloaded = data.getBytesTransfered();
                 var downloadedStr = BinaryUnitUtil.formatAsBinaryBytes(downloaded);
                 var fileSize = data.getFileSize();
@@ -183,10 +171,8 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setVisible(true);
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(progress);
-                break;
             }
-            case CONVERTING_AUDIO:
-            {
+            case CONVERTING_AUDIO -> {
                 var converted = data.getSecondsConverted();
                 var convertedStr = MiniTime.formatDiff(converted * 1000);
                 var totalLength = data.getSecondsTotal();
@@ -198,10 +184,8 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setVisible(true);
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(progress);
-                break;
             }
-            case CONVERTING_VIDEO:
-            {
+            case CONVERTING_VIDEO -> {
                 var converted = data.getSecondsConverted();
                 var convertedStr = MiniTime.formatDiff(converted * 1000);
                 var totalLength = data.getSecondsTotal();
@@ -213,18 +197,14 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setVisible(true);
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(progress);
-                break;
             }
-            case DELETING_TEMP_FILES:
-            {
+            case DELETING_TEMP_FILES -> {
                 this.progressLabel.setText("Deleting temporary files...");
                 this.progressBar.setVisible(true);
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
-                break;
             }
-            case SUCCESS:
-            {
+            case SUCCESS -> {
                 this.progressLabel.setText("Done, final file name(s): \n" + data.getOutputFiles().stream().map(Path::toAbsolutePath).map(Path::toString).collect(Collectors.joining()));
 
                 if (Desktop.isDesktopSupported())
@@ -233,60 +213,32 @@ public class DownloaderPane extends AnchorPane
                     this.openFolderButton.setManaged(true);
                     this.openFolderButton.setOnAction(event ->
                     {
-                        if (Desktop.isDesktopSupported())
+                        var files = data.getOutputFiles();
+
+                        if (files.size() == 0)
+                            return;
+
+                        var file = files.get(0);
+
+                        if (file == null)
+                            return;
+
+                        if (!Files.isRegularFile(file))
                         {
-                            var desktop = Desktop.getDesktop();
-
-                            var files = data.getOutputFiles();
-
-                            if (files.size() >= 1)
-                            {
-                                var file = files.get(0);
-
-                                if (file != null && Files.isRegularFile(file) && desktop.isSupported(Desktop.Action.BROWSE_FILE_DIR))
-                                {
-                                    SwingUtilities.invokeLater(() -> desktop.browseFileDirectory(file.toFile()));
-                                }
-                                else if (file != null && Files.isRegularFile(file) && desktop.isSupported(Desktop.Action.BROWSE))
-                                {
-                                    SwingUtilities.invokeLater(()  -> {
-                                        try
-                                        {
-                                            desktop.browse(file.getParent().toUri());
-                                        }
-                                        catch (IOException e)
-                                        {
-                                            e.printStackTrace();
-                                            this.showError("Could not show the file", "An error has occured while opening your file browser.\nIt is likely your file browser is not supported.");
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    this.showError("Could not show the file", "The file was moved or deleted.");
-                                }
-                            }
+                            DesktopUtils.showError("Could not show the file", "The file was moved or deleted.");
+                            return;
                         }
+
+                        DesktopUtils.showInExplorer(file);
                     });
                 }
-
-                break;
             }
-            case FAILED:
-            {
+            case FAILED -> {
                 this.progressLabel.setText(data.getErrorText());
                 this.retryButton.setOnAction(event -> data.restart());
                 this.retryButton.setVisible(true);
                 this.retryButton.setManaged(true);
-                break;
             }
         }
-    }
-
-    private void showError(String header, String text)
-    {
-        var alert = new Alert(AlertType.ERROR, text, ButtonType.OK);
-        alert.setTitle(header);
-        alert.showAndWait();
     }
 }

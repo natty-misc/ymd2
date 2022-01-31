@@ -6,7 +6,8 @@ public class CubicBezier
     private final double b;
     private final double c;
     private final double d;
-    private final int iterations = 16;
+
+    private static final int ITERATIONS = 16;
 
     public CubicBezier(double cpx1, double cpy1, double cpx2, double cpy2)
     {
@@ -31,7 +32,7 @@ public class CubicBezier
         double delta = 0.25;
         boolean uh;
 
-        for (int i = 0; i < this.iterations; i++)
+        for (int i = 0; i < ITERATIONS; i++)
         {
             x = 3 * (1 - t) * (1 - t) * t * this.a + 3 * (1 - t) * t * t * this.c + t * t * t;
             y = 3 * (1 - t) * (1 - t) * t * this.b + 3 * (1 - t) * t * t * this.d + t * t * t;

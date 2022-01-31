@@ -4,12 +4,10 @@ import java.util.Locale;
 
 public class BinaryUnitUtil
 {
-
     static final String[] units = { "B", "kiB", "MiB", "GiB", "TiB" };
 
     public static String formatAsBinaryBytes(long bb)
     {
-
         double bbd = bb;
         byte bnu = 0;
 
@@ -19,6 +17,6 @@ public class BinaryUnitUtil
             bnu++;
         }
 
-        return String.format(Locale.ENGLISH, "%.2f", bbd) + units[bnu];
+        return String.format(Locale.ENGLISH, "%.2f%s", bbd, units[bnu]);
     }
 }

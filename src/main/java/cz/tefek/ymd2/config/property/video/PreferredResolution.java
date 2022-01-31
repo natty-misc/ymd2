@@ -10,6 +10,7 @@ public enum PreferredResolution
     Q_1080P("1080p (Full HD)"),
     Q_1440P("1440p"),
     Q_2160P("2160p (4k Ultra HD)"),
+    Q_2880P("2880p (5k)"),
     Q_4320P("4320p (8k)"),
     HIGHEST("Highest available");
 
@@ -28,6 +29,6 @@ public enum PreferredResolution
 
     public static PreferredResolution getDefault()
     {
-        return Q_720P;
+        return Q_1080P;
     }
 }
