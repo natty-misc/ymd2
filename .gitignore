@@ -5,10 +5,14 @@
 /ffprobe
 /shade/
 /temp/
+# For symlinks
+/out
 /out/
 /logs
 
 /settings.cfg
+# Upcoming settings directory
+/settings
 
 /.idea
 /*.iml
