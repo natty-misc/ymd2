@@ -1,29 +1,33 @@
 package cz.tefek.ymd2;
 
-import java.util.ResourceBundle;
-
-import java.net.URL;
-
-import cz.tefek.ymd2.backend.WorkerBuilder;
-import cz.tefek.ymd2.backend.WorkerManager;
-import cz.tefek.ymd2.interconnect.progress.RetrieveProgressWatcher;
-import cz.tefek.ymd2.gui.DownloaderPane;
-import cz.tefek.ymd2.util.InputValidator;
-
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.value.ObservableListValue;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import java.net.URL;
+import java.util.ResourceBundle;
+
+import cz.tefek.ymd2.backend.WorkerBuilder;
+import cz.tefek.ymd2.backend.WorkerManager;
+import cz.tefek.ymd2.config.Config;
+import cz.tefek.ymd2.config.ConfigManager;
+import cz.tefek.ymd2.interconnect.progress.ProgressStatus;
+import cz.tefek.ymd2.interconnect.progress.RetrieveProgressWatcher;
+import cz.tefek.ymd2.util.InputValidator;
 
 public class BaseAppController implements Initializable
 {
@@ -36,12 +40,46 @@ public class BaseAppController implements Initializable
     @FXML
     private VBox jobList;
 
+    @FXML
+    private ComboBox<Config> configSelect;
+
+    @FXML
+    private Label queuedCountLabel;
+
+    @FXML
+    private Label progressCountLabel;
+
+    @FXML
+    private Label finishedCountLabel;
+
+    @FXML
+    private Label failedCountLabel;
+
+    private ObservableList<ReadOnlyObjectProperty<ProgressStatus>> statuses;
+
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
+        this.statuses = FXCollections.observableArrayList(e -> new Observable[] { e });
+
         this.versionBar.setText("Version " + AppMain.getAppVersion());
 
         this.urlInput.textProperty().addListener(this::onEdit);
+
+        var configs = this.configSelect.getItems();
+        configs.addAll(ConfigManager.getConfigs());
+        this.configSelect.setValue(this.configSelect.getItems().get(0));
+
+        this.queuedCountLabel.textProperty().bind(Bindings.size(statuses.filtered(config -> config.get() == ProgressStatus.QUEUED)).asString());
+
+        this.progressCountLabel.textProperty().bind(Bindings.size(statuses.filtered(config -> switch (config.get()) {
+            case CONVERTING_AUDIO, CONVERTING_VIDEO, DOWNLOADING_AUDIO, DOWNLOADING_VIDEO, DELETING_TEMP_FILES, RETRIEVING_METADATA -> true;
+            default -> false;
+        })).asString());
+
+        this.finishedCountLabel.textProperty().bind(Bindings.size(statuses.filtered(config -> config.get() == ProgressStatus.SUCCESS)).asString());
+
+        this.failedCountLabel.textProperty().bind(Bindings.size(statuses.filtered(config -> config.get() == ProgressStatus.FAILED)).asString());
     }
 
     private void onEdit(ObservableValue<? extends String> prop, String oldValue, String newValue)
@@ -51,7 +89,7 @@ public class BaseAppController implements Initializable
         if (videoID != null)
         {
             this.urlInput.setText("");
-            this.downloadMP3(videoID);
+            this.download(videoID);
         }
     }
 
@@ -70,31 +108,17 @@ public class BaseAppController implements Initializable
     @FXML
     public void openSettings(ActionEvent event)
     {
-        try
-        {
-            var stage = new Stage();
-            var baseAppPane = AppMain.<AnchorPane>loadFXML("ConfigWindow");
-            Scene scene = new Scene(baseAppPane, 800, 700);
-            stage.setMinHeight(700);
-            stage.setMinWidth(800);
-            stage.setResizable(false);
-            stage.setTitle("YMD2 settings");
-            stage.setScene(scene);
-            stage.initModality(Modality.WINDOW_MODAL);
-            stage.initOwner(this.versionBar.getScene().getWindow());
-            stage.showAndWait();
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private void showError(String header, String text)
-    {
-        var alert = new Alert(AlertType.ERROR, text, ButtonType.OK);
-        alert.setTitle(header);
-        alert.showAndWait();
+        var stage = new Stage();
+        var baseAppPane = AppMain.<AnchorPane>loadFXML("ConfigWindow");
+        Scene scene = new Scene(baseAppPane, 800, 700);
+        stage.setMinHeight(700);
+        stage.setMinWidth(800);
+        stage.setResizable(false);
+        stage.setTitle("YMD2 settings");
+        stage.setScene(scene);
+        stage.initModality(Modality.WINDOW_MODAL);
+        stage.initOwner(this.versionBar.getScene().getWindow());
+        stage.showAndWait();
     }
 
     private RetrieveProgressWatcher createTask(String videoID)
@@ -103,22 +127,24 @@ public class BaseAppController implements Initializable
         System.out.println("Received task: " + videoID);
 
         var watcher = new RetrieveProgressWatcher();
-        var downloaderPane = new DownloaderPane(watcher);
 
+        var downloaderPane = AppMain.<AnchorPane, TaskPaneController>loadFXML("TaskPane", c -> {
+            c.setWatcher(watcher);
+            c.addStateListener(this);
+        });
         this.jobList.getChildren().add(0, downloaderPane);
 
         return watcher;
     }
 
-    private void downloadMP3(String videoID)
+    public void addManagedTaskState(ReadOnlyObjectProperty<ProgressStatus> statusObservableValue)
     {
-        var workerBuilder = WorkerBuilder.basicMP3Worker();
-        WorkerManager.newJob(videoID, this.createTask(videoID), workerBuilder);
+        this.statuses.add(statusObservableValue);
     }
 
-    private void downloadMP4(String videoID)
+    private void download(String videoID)
     {
-        var workerBuilder = WorkerBuilder.basicMP4Worker();
+        var workerBuilder = WorkerBuilder.fromConfig(this.configSelect.getValue());
         WorkerManager.newJob(videoID, this.createTask(videoID), workerBuilder);
     }
 }

@@ -8,7 +8,7 @@
 <?import javafx.scene.paint.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.tefek.ymd2.ConfigWindowController">
+<AnchorPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.tefek.ymd2.ConfigWindowController">
    <children>
       <BorderPane layoutX="9.0" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <center>
@@ -115,7 +115,7 @@
                                  </graphic>
                               </Label>
                               <Label text="Original YouTube audio usually uses the Opus, AAC or Vorbis codecs." textFill="#000fff" />
-                              <Label text="Keep in mind every audio codec has different efficiency and therefore requires different bitrates." textFill="#000fff" wrapText="true" />
+                              <Label text="Keep in mind every audio codec has a different effectivity and therefore requires a different bitrate to sound good." textFill="#000fff" wrapText="true" />
                               <TableView maxWidth="500.0" prefHeight="200.0">
                                  <columns>
                                     <TableColumn editable="false" text="Codec" />

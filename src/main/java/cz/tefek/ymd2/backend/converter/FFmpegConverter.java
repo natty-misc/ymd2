@@ -240,13 +240,11 @@ public class FFmpegConverter
 
     private void convert(MultimediaType type, FFmpegBuilder commandLine, RetrieveProgressWatcher watcher)
     {
-        final var nanosPerSecond = TimeUnit.SECONDS.toNanos(1);
         final var displayedType = type == MultimediaType.AUDIO ? ProgressStatus.CONVERTING_AUDIO : ProgressStatus.CONVERTING_VIDEO;
 
         watcher.setStatus(displayedType);
 
-        var job = this.executor.createJob(commandLine, progress ->
-                watcher.setSecondsConverted(progress.out_time_ns / nanosPerSecond));
+        var job = this.executor.createJob(commandLine, progress -> watcher.setSecondsConverted(TimeUnit.NANOSECONDS.toSeconds(progress.out_time_ns)));
 
         job.run();
     }

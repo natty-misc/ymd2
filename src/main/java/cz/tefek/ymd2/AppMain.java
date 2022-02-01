@@ -12,10 +12,12 @@ import org.apache.commons.lang3.stream.Streams;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import cz.tefek.pluto.io.logger.Logger;
 import cz.tefek.pluto.io.logger.SmartSeverity;
@@ -29,11 +31,29 @@ public class AppMain extends Application
 
     private static HostServices hostServices;
 
-    public static <T> T loadFXML(String fxml) throws IOException
+    public static <T> T loadFXML(String fxml)
     {
-        var resource = AppMain.class.getResource(fxml + ".fxml");
-        assert resource != null;
-        return FXMLLoader.load(resource);
+        return loadFXML(fxml, null);
+    }
+
+    public static <TC, CC> TC loadFXML(String fxml, Consumer<CC> controllerInitializer)
+    {
+        try
+        {
+            var resource = AppMain.class.getResource(fxml + ".fxml");
+            assert resource != null;
+            var fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(resource);
+            var component = fxmlLoader.<TC>load();
+            var controller = fxmlLoader.<CC>getController();
+            if (controllerInitializer != null)
+                controllerInitializer.accept(controller);
+            return component;
+        }
+        catch (IOException e)
+        {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
@@ -51,7 +71,16 @@ public class AppMain extends Application
 
         hostServices = this.getHostServices();
 
-        ConfigManager.init();
+        try
+        {
+            ConfigManager.init();
+        }
+        catch (IOException e)
+        {
+            Logger.logf(SmartSeverity.WARNING, "Failed to load configurations.");
+            throw new UncheckedIOException(e);
+        }
+
 
         System.setProperty("prism.lcdtext", "false");
         System.setProperty("prism.text", "t2k");

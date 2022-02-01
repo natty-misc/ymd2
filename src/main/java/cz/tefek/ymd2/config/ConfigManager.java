@@ -5,22 +5,75 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import cz.tefek.ymd2.config.property.audio.AudioBitrate;
+import cz.tefek.ymd2.config.property.audio.AudioFormat;
+import cz.tefek.ymd2.config.property.video.PreferredResolution;
+import cz.tefek.ymd2.config.property.video.VideoCodec;
+import cz.tefek.ymd2.config.property.video.VideoContainer;
+import cz.tefek.ymd2.util.DirectoryUtil;
+
 public class ConfigManager
 {
-    private static Config settings;
+    private static List<Config> configs;
+    private static final List<Config> builtInConfigs;
+    private static List<Config> customConfigs;
 
-    static Path settingsFile = Path.of("settings.cfg");
+    private static final Path SETTINGS_DIR = Path.of("settings");
 
-    public static void init()
+    private static final Path settingsFile = SETTINGS_DIR.resolve("configurations.json");
+
+    static
     {
-        settings = new Config();
+        builtInConfigs = new ArrayList<>();
+
+        var mp3Default = new Config("MP3 [built-in]") {{
+            this.general.separateAudioVideo = true;
+
+            this.general.simplifyName = true;
+
+            this.video.enabled = false;
+
+            this.audio.enabled = true;
+            this.audio.format = AudioFormat.MP3;
+            this.audio.bitrate = AudioBitrate.KBPS256;
+        }};
+
+        builtInConfigs.add(mp3Default);
+
+        var mp4Default = new Config("MP4 [built-in]") {{
+            this.general.separateAudioVideo = false;
+
+            this.video.enabled = true;
+            this.video.container = VideoContainer.MP4;
+            this.video.codec = VideoCodec.H264;
+            this.video.convert = true;
+            this.video.preferredResolution = PreferredResolution.HIGHEST;
+
+            this.audio.enabled = true;
+            this.audio.format = AudioFormat.AAC;
+            this.audio.bitrate = AudioBitrate.KBPS128;
+        }};
+
+        builtInConfigs.add(mp4Default);
+    }
+
+    public static void init() throws IOException
+    {
+        DirectoryUtil.ensureDirectoryExists(SETTINGS_DIR);
 
         try
         {
+            configs = new ArrayList<>();
+            configs.addAll(builtInConfigs);
+            customConfigs = new ArrayList<>();
+
             if (Files.isRegularFile(settingsFile))
                 load();
             
@@ -36,8 +89,9 @@ public class ConfigManager
     {
         try (BufferedReader reader = Files.newBufferedReader(settingsFile))
         {
-            var gson = new Gson();
-            settings = gson.fromJson(reader, Config.class);
+            var om = new ObjectMapper();
+            customConfigs = om.readValue(reader, new TypeReference<>() {});
+            configs.addAll(customConfigs);
         }
     }
 
@@ -45,20 +99,13 @@ public class ConfigManager
     {
         try (BufferedWriter writer = Files.newBufferedWriter(settingsFile))
         {
-            var gb = new GsonBuilder();
-            gb.setPrettyPrinting();
-            var gson = gb.create();
-            gson.toJson(settings, writer);
+            var om = new ObjectMapper().writerWithDefaultPrettyPrinter();
+            om.writeValue(writer, customConfigs);
         }
     }
 
-    public static Config getSettings()
+    public static List<Config> getConfigs()
     {
-        return settings;
-    }
-
-    public static Config copySettings()
-    {
-        return settings.copy();
+        return configs;
     }
 }

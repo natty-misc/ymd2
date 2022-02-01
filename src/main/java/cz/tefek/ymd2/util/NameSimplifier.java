@@ -10,7 +10,7 @@ public class NameSimplifier
     private static final List<String> uselessInformation;
     private static final List<String> genres;
 
-    private static final String RX_QUALITY = "(" + "HD|HQ|4K|1080p|720p|high( |-)definition|high( |-)quality| live|extended|royalty( |-)free|free( |-)download|no( |-)copyright|download" + ")";
+    private static final String RX_QUALITY = "(" + "HD|HQ|4K|1080p|720p|high( |-)definition|high( |-)quality| live|extended|royalty( |-)free|free( |-)(download|dl)|no( |-)copyright|download" + ")";
     private static final String RX_SOURCE = "(original|official)";
     private static final String RX_LENGTH = "(extended|extended version|long version|longer version|full|full version)";
     private static final String RX_SOURCE_LENGTH = "(" + RX_SOURCE + "|" + RX_LENGTH + ")";
@@ -133,7 +133,7 @@ public class NameSimplifier
 
         for (var pat : uselessInformationEnclosed)
         {
-            for (var enclosings : List.of("\\{ *?%s *?\\}", "\\*+ *?%s *?\\*+   ", "\\[ *?%s *?\\]", "\\( *?%s *?\\)", "\\| *?%s *?", "【 *?%s *?】", "- *?%s *?", "^%s *?-"))
+            for (var enclosings : List.of("\\{ *?%s *?\\}", ": *?%s *?:", "\\*+ *?%s *?\\*+   ", "\\[ *?%s *?\\]", "\\( *?%s *?\\)", "\\| *?%s *?", "⋅ *?%s *?", "【 *?%s *?】", "- *?%s *?", "^%s *?-"))
             {
                 var finalPatternString = String.format(String.format(" *?%s", enclosings), pat);
                 var pattern = Pattern.compile(finalPatternString, Pattern.CASE_INSENSITIVE);

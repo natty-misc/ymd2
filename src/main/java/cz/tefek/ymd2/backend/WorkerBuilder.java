@@ -7,12 +7,10 @@ import java.util.UUID;
 
 import cz.tefek.ymd2.backend.converter.FFmpegConverter;
 import cz.tefek.ymd2.backend.downloader.BinaryDownloader;
-import cz.tefek.ymd2.interconnect.progress.RetrieveProgressWatcher;
 import cz.tefek.ymd2.config.Config;
-import cz.tefek.ymd2.interconnect.progress.ProgressStatus;
-import cz.tefek.ymd2.config.property.audio.AudioBitrate;
 import cz.tefek.ymd2.config.property.audio.AudioFormat;
-import cz.tefek.ymd2.config.property.video.*;
+import cz.tefek.ymd2.interconnect.progress.ProgressStatus;
+import cz.tefek.ymd2.interconnect.progress.RetrieveProgressWatcher;
 import cz.tefek.ymd2.util.DirectoryUtil;
 import cz.tefek.ymd2.util.NameSimplifier;
 import cz.tefek.youtubetoolkit.YouTubeVideoData;
@@ -28,41 +26,11 @@ public final class WorkerBuilder
         this.worker = new Worker();
     }
 
-    public static WorkerBuilder basicMP3Worker()
+    public static WorkerBuilder fromConfig(Config config)
     {
-        var builder = new WorkerBuilder();
-        builder.worker.config = new Config() {{
-            this.general.simplifyName = true;
-            this.general.separateAudioVideo = true;
-
-            this.video.enabled = false;
-
-            this.audio.enabled = true;
-            this.audio.format = AudioFormat.MP3;
-            this.audio.bitrate = AudioBitrate.KBPS256;
-        }};
-
-        return builder;
-    }
-
-    public static WorkerBuilder basicMP4Worker()
-    {
-        var builder = new WorkerBuilder();
-        builder.worker.config = new Config() {{
-            this.general.separateAudioVideo = true;
-
-            this.video.enabled = true;
-            this.video.container = VideoContainer.MP4;
-            this.video.codec = VideoCodec.H264;
-            this.video.convert = true;
-            this.video.preferredResolution = PreferredResolution.HIGHEST;
-
-            this.audio.enabled = true;
-            this.audio.format = AudioFormat.AAC;
-            this.audio.bitrate = AudioBitrate.KBPS128;
-        }};
-
-        return builder;
+        var wb = new WorkerBuilder();
+        wb.worker.config = config.copy();
+        return wb;
     }
 
     public Worker build(YouTubeVideoData videoData, RetrieveProgressWatcher watcher)
@@ -89,7 +57,7 @@ public final class WorkerBuilder
                 var metadata = this.videoData.getMetadata();
 
                 var nameRaw = metadata.title();
-                var name = this.config.general.simplifyName ? NameSimplifier.simplifyName(nameRaw) : nameRaw;
+                var name = this.config.general.simplifyName ? NameSimplifier.simplifyName(nameRaw) : NameSimplifier.sanitizeName(nameRaw);
 
                 if (this.config.general.separateAudioVideo)
                 {

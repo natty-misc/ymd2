@@ -13,12 +13,16 @@ public class Config
     public static Path tempDirectory = Path.of("temp");
     public static Path outputDirectory = Path.of("out");
 
+    public String name;
+
     public General general;
     public Audio audio;
     public Video video;
 
-    public Config()
+    public Config(String name)
     {
+        this.name = name;
+
         this.general = new General();
         this.audio = new Audio();
         this.video = new Video();
@@ -97,11 +101,17 @@ public class Config
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return this.name;
+    }
+
     public Config copy()
     {
         var old = this;
 
-        return new Config() {{
+        return new Config(old.name) {{
             this.general = old.general.copy();
             this.audio = old.audio.copy();
             this.video = old.video.copy();
