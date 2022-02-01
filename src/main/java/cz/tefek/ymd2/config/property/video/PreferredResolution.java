@@ -3,6 +3,7 @@ package cz.tefek.ymd2.config.property.video;
 public enum PreferredResolution
 {
     LOWEST("Lowest available"),
+    Q_144P("144p"),
     Q_240P("240p"),
     Q_360P("360p"),
     Q_480P("480p"),
