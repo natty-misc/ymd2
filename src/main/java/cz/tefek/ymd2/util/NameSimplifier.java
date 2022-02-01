@@ -35,6 +35,8 @@ public class NameSimplifier
                 "(" + RX_QUALITY + " )+audio",
                 "audio( " + RX_QUALITY + ")+",
 
+                "#shorts",
+
                 "song$",
                 "-$",
                 "^-",
