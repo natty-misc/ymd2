@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import cz.tefek.pluto.io.logger.Logger;
 import cz.tefek.pluto.io.logger.SmartSeverity;
-import cz.tefek.ymd2.background.WorkerManager;
+import cz.tefek.ymd2.backend.WorkerManager;
 import cz.tefek.ymd2.config.Config;
 import cz.tefek.ymd2.config.ConfigManager;
 
@@ -29,9 +29,10 @@ public class AppMain extends Application
 
     private static HostServices hostServices;
 
-    private static <T> T loadFXML(String fxml) throws IOException
+    public static <T> T loadFXML(String fxml) throws IOException
     {
         var resource = AppMain.class.getResource(fxml + ".fxml");
+        assert resource != null;
         return FXMLLoader.load(resource);
     }
 
@@ -57,11 +58,11 @@ public class AppMain extends Application
 
         try
         {
-            var baseAppPane = (AnchorPane) loadFXML("DownloaderBase");
+            var baseAppPane = AppMain.<AnchorPane>loadFXML("DownloaderBase");
             Scene scene = new Scene(baseAppPane, 650, 700);
             stage.setMinHeight(400);
             stage.setMinWidth(650);
-            stage.setTitle("YouTube MultiDownloader v." + appVersion);
+            stage.setTitle("YMD2 v." + appVersion);
             stage.setScene(scene);
             stage.show();
         }
@@ -73,13 +74,17 @@ public class AppMain extends Application
 
     private void clearTemp() throws IOException
     {
-        var temp = Path.of(Config.tempDirectory);
+        var temp = Config.tempDirectory;
 
         if (Files.isDirectory(temp))
         {
             Logger.logf(SmartSeverity.INFO, "Clearing %s ...%n", temp.toAbsolutePath());
-            var files = new Streams.FailableStream<>(Files.list(temp));
-            files.filter(file -> file.getFileName().endsWith(".temp")).forEach(Files::delete);
+
+            try (var fileList = Files.list(temp))
+            {
+                var files = new Streams.FailableStream<>(fileList);
+                files.filter(file -> file.getFileName().endsWith(".temp")).forEach(Files::delete);
+            }
         }
 
         try
@@ -88,23 +93,26 @@ public class AppMain extends Application
 
             if (Files.isDirectory(logs))
             {
-                Files.list(logs).forEach(file -> {
-                    try
-                    {
-                        var attributes = Files.readAttributes(file, BasicFileAttributes.class);
-                        var createdDate = attributes.creationTime();
-
-                        // Delete logs older than one day
-                        if (System.currentTimeMillis() - createdDate.toMillis() > TimeUnit.DAYS.toMillis(7))
+                try (var logList = Files.list(logs))
+                {
+                    logList.forEach(file -> {
+                        try
                         {
-                            Files.deleteIfExists(file);
+                            var attributes = Files.readAttributes(file, BasicFileAttributes.class);
+                            var createdDate = attributes.creationTime();
+
+                            // Delete logs older than one week
+                            if (System.currentTimeMillis() - createdDate.toMillis() > TimeUnit.DAYS.toMillis(7))
+                            {
+                                Files.deleteIfExists(file);
+                            }
                         }
-                    }
-                    catch (IOException e)
-                    {
-                        e.printStackTrace();
-                    }
-                });
+                        catch (IOException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    });
+                }
             }
         }
         catch (IOException e)
@@ -155,6 +163,7 @@ public class AppMain extends Application
 
         try (var is = AppMain.class.getResourceAsStream("/version"))
         {
+            assert is != null;
             var reader = new BufferedReader(new InputStreamReader(is));
 
             appVersion = reader.readLine();

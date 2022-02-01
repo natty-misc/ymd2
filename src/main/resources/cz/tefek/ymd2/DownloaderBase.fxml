@@ -8,140 +8,101 @@
 <?import javafx.scene.paint.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="700.0" prefWidth="650.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.tefek.ymd2.BaseAppController">
-   <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-               AnchorPane.topAnchor="0.0">
+<AnchorPane prefHeight="700.0" prefWidth="650.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.tefek.ymd2.BaseAppController">
+   <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <top>
          <VBox BorderPane.alignment="CENTER">
             <BorderPane style="-fx-background-color: #333333;">
                <left>
                   <Label text="YMD2" textFill="WHITE" BorderPane.alignment="CENTER">
                      <font>
-                        <Font name="Open Sans Regular" size="40.0"/>
+                        <Font name="Open Sans Regular" size="40.0" />
                      </font>
                      <graphic>
                         <ImageView fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
-                           <Image url="@../../../assets/fxAmp.png"/>
+                           <Image url="@../../../assets/fxAmp.png" />
                         </ImageView>
                      </graphic>
                      <effect>
-                        <DropShadow height="7.0" offsetY="3.0" radius="3.0" width="7.0"/>
+                        <DropShadow height="7.0" offsetY="3.0" radius="3.0" width="7.0" />
                      </effect>
                   </Label>
                </left>
                <VBox.margin>
-                  <Insets/>
+                  <Insets />
                </VBox.margin>
                <padding>
-                  <Insets left="5.0"/>
+                  <Insets left="5.0" />
                </padding>
             </BorderPane>
             <BorderPane style="-fx-background-color: black;">
                <left>
-                  <Label fx:id="versionBar" text="Alpha version" textFill="WHITE" BorderPane.alignment="CENTER">
+                  <Label fx:id="versionBar" text="Development version" textFill="WHITE" BorderPane.alignment="CENTER">
                      <font>
-                        <Font name="Open Sans Bold Italic" size="12.0"/>
+                        <Font name="Open Sans Bold Italic" size="12.0" />
                      </font>
                   </Label>
                </left>
                <padding>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                </padding>
                <right>
-                  <Hyperlink graphicTextGap="0.0" onAction="#reportABugOnClick"
-                             style="-fx-background-color: transparent; -fx-border-color: transparent;"
-                             text="Report an issue..." textFill="WHITE" underline="true"
-                             BorderPane.alignment="CENTER">
+                  <Hyperlink graphicTextGap="0.0" onAction="#reportABugOnClick" style="-fx-background-color: transparent; -fx-border-color: transparent;" text="Report an issue..." textFill="WHITE" underline="true" BorderPane.alignment="CENTER">
                      <font>
-                        <Font name="Open Sans Italic" size="12.0"/>
+                        <Font name="Open Sans Italic" size="12.0" />
                      </font>
                      <BorderPane.margin>
-                        <Insets bottom="-5.0" left="-5.0" right="-5.0" top="-5.0"/>
+                        <Insets bottom="-5.0" left="-5.0" right="-5.0" top="-5.0" />
                      </BorderPane.margin>
                   </Hyperlink>
                </right>
             </BorderPane>
-            <VBox>
-               <VBox.margin>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-               </VBox.margin>
-               <Label text="Please insert a YouTube URL and choose an action:" textFill="#656565">
+            <HBox spacing="5.0">
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+               <TextField fx:id="urlInput" promptText="Insert a YouTube URL..." HBox.hgrow="ALWAYS">
+                  <opaqueInsets>
+                     <Insets />
+                  </opaqueInsets>
                   <font>
-                     <Font name="Open Sans Italic" size="15.0"/>
+                     <Font name="Open Sans Regular" size="12.0" />
                   </font>
-               </Label>
-               <HBox spacing="5.0">
-                  <padding>
-                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                  </padding>
-                  <TextField fx:id="urlInput" HBox.hgrow="ALWAYS">
-                     <opaqueInsets>
-                        <Insets/>
-                     </opaqueInsets>
-                  </TextField>
-                  <Button fx:id="downloadMP3Button" disable="true" mnemonicParsing="false"
-                          onAction="#mp3OnClick" text="Download MP3" textFill="#cc00ff">
-                     <font>
-                        <Font name="Open Sans Regular" size="13.0"/>
-                     </font>
-                  </Button>
-                  <ToggleButton fx:id="autodownloadButton" mnemonicParsing="false" selected="true"
-                                text="Autodownload MP3">
-                     <textFill>
-                        <LinearGradient endX="1.0" endY="1.0" startY="1.0">
-                           <stops>
-                              <Stop color="#bf00ff"/>
-                              <Stop color="#bf00ff" offset="0.007662835249042145"/>
-                              <Stop color="#0400ff" offset="1.0"/>
-                           </stops>
-                        </LinearGradient>
-                     </textFill>
-                     <font>
-                        <Font name="Open Sans Regular" size="13.0"/>
-                     </font>
-                  </ToggleButton>
-               </HBox>
-               <FlowPane hgap="5.0" vgap="5.0">
-                  <Button disable="true" mnemonicParsing="false" text="Download thumbnail">
-                     <font>
-                        <Font name="Open Sans Regular" size="13.0"/>
-                     </font>
-                  </Button>
-                  <Button fx:id="downloadMP4Button" mnemonicParsing="false" onAction="#mp4OnClick"
-                          text="Download MP4">
-                     <font>
-                        <Font name="Open Sans Regular" size="13.0"/>
-                     </font>
-                  </Button>
-                  <Button disable="true" mnemonicParsing="false" text="Download playlist as MP3">
-                     <textFill>
-                        <LinearGradient endX="1.0" endY="1.0" startY="1.0">
-                           <stops>
-                              <Stop color="#bf00ff"/>
-                              <Stop color="#bf00ff" offset="0.007662835249042145"/>
-                              <Stop color="#0400ff" offset="1.0"/>
-                           </stops>
-                        </LinearGradient>
-                     </textFill>
-                     <font>
-                        <Font name="Open Sans Regular" size="13.0"/>
-                     </font>
-                  </Button>
-                  <Button disable="true" mnemonicParsing="false" text="Manual download...">
-                     <font>
-                        <Font name="Open Sans Regular" size="13.0"/>
-                     </font>
-                  </Button>
-               </FlowPane>
-            </VBox>
+               </TextField>
+               <ComboBox prefWidth="150.0" />
+               <Button mnemonicParsing="false" onAction="#openSettings" text="Options...">
+                  <font>
+                     <Font name="Open Sans Bold" size="12.0" />
+                  </font>
+                  <textFill>
+                     <LinearGradient endX="1.0" endY="1.0" startY="1.0">
+                        <stops>
+                           <Stop>
+                              <color>
+                                 <Color green="0.6447368264198303" blue="0.4190789461135864" />
+                              </color>
+                           </Stop>
+                           <Stop offset="0.007407407407407408">
+                              <color>
+                                 <Color green="0.7236841917037964" blue="0.48245614767074585" />
+                              </color>
+                           </Stop>
+                           <Stop offset="1.0">
+                              <color>
+                                 <Color green="0.5438596606254578" blue="0.8157894611358643" />
+                              </color>
+                           </Stop>
+                        </stops>
+                     </LinearGradient>
+                  </textFill>
+               </Button>
+            </HBox>
          </VBox>
       </top>
       <center>
          <ScrollPane fitToHeight="true" fitToWidth="true" prefViewportHeight="500.0" BorderPane.alignment="CENTER">
             <AnchorPane minHeight="-Infinity" minWidth="-Infinity">
-               <VBox fx:id="jobList" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+               <VBox fx:id="jobList" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
             </AnchorPane>
          </ScrollPane>
       </center>
@@ -150,26 +111,18 @@
             <left>
                <Label text="Waiting for download tasks...">
                   <BorderPane.margin>
-                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                   </BorderPane.margin>
                   <font>
-                     <Font name="Open Sans Italic" size="11.0"/>
+                     <Font name="Open Sans Italic" size="11.0" />
                   </font>
                </Label>
             </left>
             <right>
-               <HBox alignment="CENTER" spacing="2.0" BorderPane.alignment="CENTER">
-                  <ComboBox disable="true" prefWidth="150.0" promptText="Preset"/>
-                  <Button disable="true" mnemonicParsing="false" text="Preset options...">
-                     <font>
-                        <Font name="Open Sans Regular" size="12.0"/>
-                     </font>
-                  </Button>
-               </HBox>
+               <HBox alignment="CENTER" spacing="2.0" BorderPane.alignment="CENTER" />
             </right>
          </BorderPane>
       </bottom>
    </BorderPane>
-   <Pane opacity="0.5" style="-fx-background-color: black;" visible="false" AnchorPane.bottomAnchor="0.0"
-         AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+   <Pane opacity="0.5" style="-fx-background-color: black;" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 </AnchorPane>

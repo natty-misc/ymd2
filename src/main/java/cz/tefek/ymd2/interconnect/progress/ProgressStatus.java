@@ -1,4 +1,4 @@
-package cz.tefek.ymd2.background.progress;
+package cz.tefek.ymd2.interconnect.progress;
 
 import javafx.scene.paint.Color;
 

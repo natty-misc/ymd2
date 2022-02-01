@@ -8,7 +8,7 @@ import java.awt.Desktop;
 import java.util.stream.Collectors;
 
 import cz.tefek.pluto.chrono.MiniTime;
-import cz.tefek.ymd2.background.progress.RetrieveProgressWatcher;
+import cz.tefek.ymd2.interconnect.progress.RetrieveProgressWatcher;
 import cz.tefek.ymd2.util.BinaryUnitUtil;
 import cz.tefek.ymd2.util.DesktopUtils;
 
@@ -20,11 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
@@ -63,9 +59,7 @@ public class DownloaderPane extends AnchorPane
         this.progressBar = new ProgressBar();
         this.progressBar.setPrefWidth(400);
 
-        this.retryButton = new Button("Retry");
 
-        this.openFolderButton = new Button("Show in explorer");
 
         this.minHeightProperty().bind(this.prefHeightProperty());
 
@@ -75,8 +69,17 @@ public class DownloaderPane extends AnchorPane
         vBoxChildren.add(this.subtitle);
         vBoxChildren.add(this.progressLabel);
         vBoxChildren.add(this.progressBar);
-        vBoxChildren.add(this.retryButton);
-        vBoxChildren.add(this.openFolderButton);
+
+        var toolButtonBar = new HBox(5);
+
+        this.retryButton = new Button("Retry");
+        this.openFolderButton = new Button("Show in explorer");
+
+        var toolButtons = toolButtonBar.getChildren();
+        toolButtons.add(this.retryButton);
+        toolButtons.add(this.openFolderButton);
+
+        vBoxChildren.add(toolButtonBar);
 
         this.getChildren().add(innerVBox);
 
@@ -106,13 +109,13 @@ public class DownloaderPane extends AnchorPane
 
         if (metadata != null)
         {
-            var length = metadata.getLength();
+            var length = metadata.length();
 
             var lengthStr = MiniTime.formatDiff(length * 1000);
 
-            metadataStr = String.format(Locale.ENGLISH, "by %s • %d views • Video ID: %s • %s", metadata.getAuthor(), metadata.getViews(), data.getVideoID(), lengthStr);
+            metadataStr = String.format(Locale.ENGLISH, "by %s • %d views • Video ID: %s • %s", metadata.author(), metadata.views(), data.getVideoID(), lengthStr);
 
-            this.title.setText(metadata.getTitle());
+            this.title.setText(metadata.title());
         }
         else
         {
@@ -143,9 +146,9 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
             }
-            case QUEUED -> {
-                this.progressLabel.setText("Queued...");
-            }
+
+            case QUEUED -> this.progressLabel.setText("Queued...");
+
             case DOWNLOADING_AUDIO -> {
                 var downloaded = data.getBytesTransfered();
                 var downloadedStr = BinaryUnitUtil.formatAsBinaryBytes(downloaded);
@@ -159,6 +162,7 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(progress);
             }
+
             case DOWNLOADING_VIDEO -> {
                 var downloaded = data.getBytesTransfered();
                 var downloadedStr = BinaryUnitUtil.formatAsBinaryBytes(downloaded);
@@ -172,6 +176,7 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(progress);
             }
+
             case CONVERTING_AUDIO -> {
                 var converted = data.getSecondsConverted();
                 var convertedStr = MiniTime.formatDiff(converted * 1000);
@@ -185,6 +190,7 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(progress);
             }
+
             case CONVERTING_VIDEO -> {
                 var converted = data.getSecondsConverted();
                 var convertedStr = MiniTime.formatDiff(converted * 1000);
@@ -198,12 +204,14 @@ public class DownloaderPane extends AnchorPane
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(progress);
             }
+
             case DELETING_TEMP_FILES -> {
                 this.progressLabel.setText("Deleting temporary files...");
                 this.progressBar.setVisible(true);
                 this.progressBar.setManaged(true);
                 this.progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
             }
+
             case SUCCESS -> {
                 this.progressLabel.setText("Done, final file name(s): \n" + data.getOutputFiles().stream().map(Path::toAbsolutePath).map(Path::toString).collect(Collectors.joining()));
 

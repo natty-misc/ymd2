@@ -2,10 +2,9 @@ package cz.tefek.ymd2.config;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,7 +13,7 @@ public class ConfigManager
 {
     private static Config settings;
 
-    static File settingsFile = new File("settings.cfg");
+    static Path settingsFile = Path.of("settings.cfg");
 
     public static void init()
     {
@@ -22,10 +21,8 @@ public class ConfigManager
 
         try
         {
-            if (settingsFile.exists())
-            {
+            if (Files.isRegularFile(settingsFile))
                 load();
-            }
             
             save();
         }
@@ -37,7 +34,7 @@ public class ConfigManager
 
     private static void load() throws IOException
     {
-        try (BufferedReader reader = new BufferedReader(new FileReader(settingsFile)))
+        try (BufferedReader reader = Files.newBufferedReader(settingsFile))
         {
             var gson = new Gson();
             settings = gson.fromJson(reader, Config.class);
@@ -46,7 +43,7 @@ public class ConfigManager
 
     public static void save() throws IOException
     {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(settingsFile)))
+        try (BufferedWriter writer = Files.newBufferedWriter(settingsFile))
         {
             var gb = new GsonBuilder();
             gb.setPrettyPrinting();

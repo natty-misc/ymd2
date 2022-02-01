@@ -4,22 +4,26 @@ import java.util.ResourceBundle;
 
 import java.net.URL;
 
-import cz.tefek.ymd2.background.WorkerBuilder;
-import cz.tefek.ymd2.background.WorkerManager;
-import cz.tefek.ymd2.background.progress.RetrieveProgressWatcher;
+import cz.tefek.ymd2.backend.WorkerBuilder;
+import cz.tefek.ymd2.backend.WorkerManager;
+import cz.tefek.ymd2.interconnect.progress.RetrieveProgressWatcher;
 import cz.tefek.ymd2.gui.DownloaderPane;
-import cz.tefek.ymd2.input.InputValidator;
+import cz.tefek.ymd2.util.InputValidator;
+
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class BaseAppController implements Initializable
 {
@@ -30,15 +34,6 @@ public class BaseAppController implements Initializable
     private TextField urlInput;
 
     @FXML
-    private ToggleButton autodownloadButton;
-
-    @FXML
-    private Button downloadMP3Button;
-
-    @FXML
-    private Button downloadMP4Button;
-
-    @FXML
     private VBox jobList;
 
     @Override
@@ -46,66 +41,17 @@ public class BaseAppController implements Initializable
     {
         this.versionBar.setText("Version " + AppMain.getAppVersion());
 
-        this.urlInput.textProperty().addListener((observable, oldValue, newValue) ->
-        {
-            if (!this.autodownloadButton.isSelected())
-            {
-                return;
-            }
-
-            var videoID = InputValidator.findVideoID(newValue);
-
-            if (videoID != null)
-            {
-                this.urlInput.setText("");
-                this.downloadMP3(videoID);
-            }
-        });
-
-        this.autodownloadButton.selectedProperty().addListener(value ->
-        {
-            var videoID = InputValidator.findVideoID(this.urlInput.getText());
-
-            if (videoID != null)
-            {
-                this.urlInput.setText("");
-                this.downloadMP3(videoID);
-            }
-        });
-
-        this.downloadMP3Button.disableProperty().bind(this.autodownloadButton.selectedProperty());
-        this.downloadMP4Button.disableProperty().bind(this.autodownloadButton.selectedProperty());
+        this.urlInput.textProperty().addListener(this::onEdit);
     }
 
-    @FXML
-    public void mp3OnClick(ActionEvent event)
+    private void onEdit(ObservableValue<? extends String> prop, String oldValue, String newValue)
     {
-        var videoID = InputValidator.findVideoID(this.urlInput.getText());
+        var videoID = InputValidator.findVideoID(newValue);
 
         if (videoID != null)
         {
             this.urlInput.setText("");
             this.downloadMP3(videoID);
-        }
-        else
-        {
-            this.showError("Error", "Could not find a video ID with that link. Please check again.");
-        }
-    }
-
-    @FXML
-    public void mp4OnClick(ActionEvent event)
-    {
-        var videoID = InputValidator.findVideoID(this.urlInput.getText());
-
-        if (videoID != null)
-        {
-            this.urlInput.setText("");
-            this.downloadMP4(videoID);
-        }
-        else
-        {
-            this.showError("Error", "Could not find a video ID with that link. Please check again.");
         }
     }
 
@@ -119,6 +65,29 @@ public class BaseAppController implements Initializable
         alert.setHeight(250);
         alert.setHeaderText("Report a bug");
         alert.show();
+    }
+
+    @FXML
+    public void openSettings(ActionEvent event)
+    {
+        try
+        {
+            var stage = new Stage();
+            var baseAppPane = AppMain.<AnchorPane>loadFXML("ConfigWindow");
+            Scene scene = new Scene(baseAppPane, 800, 700);
+            stage.setMinHeight(700);
+            stage.setMinWidth(800);
+            stage.setResizable(false);
+            stage.setTitle("YMD2 settings");
+            stage.setScene(scene);
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(this.versionBar.getScene().getWindow());
+            stage.showAndWait();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void showError(String header, String text)

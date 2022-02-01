@@ -1,11 +1,12 @@
-package cz.tefek.ymd2.background.progress;
+package cz.tefek.ymd2.interconnect.progress;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import cz.tefek.ymd2.background.WorkerBuilder;
-import cz.tefek.ymd2.background.WorkerManager;
+import cz.tefek.ymd2.backend.WorkerBuilder;
+import cz.tefek.ymd2.backend.WorkerManager;
+import cz.tefek.ymd2.interconnect.progress.ProgressStatus;
 import cz.tefek.youtubetoolkit.YouTubeVideoData;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -104,7 +105,7 @@ public class RetrieveProgressWatcher implements Observable
 
     public synchronized long getSecondsTotal()
     {
-        return this.getVideoData().getMetadata().getLength();
+        return this.getVideoData().getMetadata().length();
     }
 
     public synchronized void setFileSize(long fileSize)

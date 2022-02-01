@@ -1,4 +1,4 @@
-package cz.tefek.ymd2.background;
+package cz.tefek.ymd2.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +8,7 @@ public class NameSimplifier
 {
     private static final List<String> uselessInformationEnclosed;
     private static final List<String> uselessInformation;
+    private static final List<String> genres;
 
     private static final String RX_QUALITY = "(" + "HD|HQ|4K|1080p|720p|high( |-)definition|high( |-)quality| live|extended|royalty( |-)free|free( |-)download|no( |-)copyright|download" + ")";
     private static final String RX_SOURCE = "(original|official)";
@@ -39,13 +40,15 @@ public class NameSimplifier
                 "^-",
                 "o(ﬀi|ﬃ)cial",
 
+                "[0-9]+ BPM",
+
                 "ＰＶ",
                 "Ａ?ＭＶ",
                 "ＢＧＭ",
 
-                "1080p",
-                "720p",
-                "4K",
+                "1080p[0-9]*",
+                "720p[0-9]*",
+                "4K[0-9]*",
 
                 "⁴ᴷ",
                 "ᴴᴰ",
@@ -57,40 +60,78 @@ public class NameSimplifier
 
                 "&?fmt=[0-9]+",
 
-                "[♫♩]",
+                "[♫♩▶]",
                 "\uD83D\uDD0A",
                 "\uD83D\uDD09",
                 "\uD83D\uDD08"
         ));
 
-        uselessInformationEnclosed = new ArrayList<>(List.of(
-                "[\\w ]+? version",
-                "[\\w ]+? release",
-                "[\\w ]+? (official|original)( (lyrics?|music))?( (video|audio|soundtrack|OST))?",
-                "[\\w ]+? album( mix)?",
+        genres = List.of(
+            "electro( |-)swing",
+            "hardstyle",
+            "(synth|vapou?r|chill)wave",
+            "euro(dance|beat)",
+            "speedcore",
+            "DnB",
+            "electro(nica?)?",
+            "glitch hop( ?(/|or) ?[0-9]+ ?BPM)?",
+            "[0-9]+ ?BPM",
+            "breaks",
+            "disco",
+            "nu disco",
+            "trance",
+            "psytrance",
+            "chiptune",
+            "bounce",
+            "(drum|dub|chill|bro|dark|death|wub)step",
+            "(hard|future|(liquid )?drum) ?&?( |-)? ?bass",
+            "(hard|melodic|chill)( |-)?trap",
+            "(breakbeat|crossbreed|industrial|happy|uk|uptempo)?( |-)?hardcore",
+            "(acid|bass|progressive|deep|disco|future|indie|hard|tropical)( |-)?house",
+            "(progressive|indie|hard)( |-)?dance",
+            "synth( |-)pop",
+            "chillout",
+            "rap"
+        );
 
-                "download",
-                "official",
-                "music",
-                "video",
-                "original",
-                "PV",
-                "A?MV",
-                "BGM",
-                "HD",
-                "HQ"
+        uselessInformationEnclosed = new ArrayList<>(List.of(
+            "[\\w&\\s]+? version",
+            "[\\w&\\s]+? release",
+            "[\\w&\\s]+? (official|original)( (lyrics?|music))?( (video|audio|soundtrack|OST))?",
+            "[\\w&\\s]+? album( mix)?",
+
+
+            "download",
+            "official",
+            "music",
+            "video",
+            "original",
+            "full",
+            "PV",
+            "A?MV",
+            "BGM",
+            "HD",
+            "HQ"
         ));
 
         uselessInformationEnclosed.addAll(0, uselessInformation);
+        uselessInformationEnclosed.addAll(genres);
     }
 
     public static String simplifyName(String input)
     {
         var simplified = input.strip();
 
+        for (var pat : List.of("#shorts$"))
+        {
+            var pattern = Pattern.compile(pat, Pattern.CASE_INSENSITIVE);
+            var matcher = pattern.matcher(simplified);
+            simplified = matcher.replaceAll("").strip();
+        }
+
         for (var pat : uselessInformationEnclosed)
         {
-            for (var enclosings : List.of("\\{ *?%s *?\\}", "\\*+ *?%s *?\\*+   ", "\\[ *?%s *?\\]", "\\( *?%s *?\\)", "\\| *?%s *?", "【 *?%s *?】", "- *?%s *?"))
+            for (var enclosings : List.of("\\{ *?%s *?\\}", "\\*+ *?%s *?\\*+   ", "\\[ *?%s *?\\]", "\\( *?%s *?\\)", "\\| *?%s *?", "【 *?%s *?】", "- *?%s *?", "^%s *?-"))
             {
                 var finalPatternString = String.format(String.format(" *?%s", enclosings), pat);
                 var pattern = Pattern.compile(finalPatternString, Pattern.CASE_INSENSITIVE);
@@ -101,9 +142,12 @@ public class NameSimplifier
 
         for (var pat : uselessInformation)
         {
-            var pattern = Pattern.compile(String.format(" *?%s", pat), Pattern.CASE_INSENSITIVE);
-            var matcher = pattern.matcher(simplified);
-            simplified = matcher.replaceAll("").strip();
+            for (var spacePattern : List.of(" +?%s", "^%s +?"))
+            {
+                var pattern = Pattern.compile(String.format(spacePattern, pat), Pattern.CASE_INSENSITIVE);
+                var matcher = pattern.matcher(simplified);
+                simplified = matcher.replaceAll("").strip();
+            }
         }
 
         return sanitizeName(simplified).strip();
@@ -111,6 +155,6 @@ public class NameSimplifier
 
     public static String sanitizeName(String input)
     {
-        return input.replaceAll("[:]", " ").replaceAll("[<>\"{}/|?*\\\\]", "");
+        return input.replaceAll("[:]", " ").replaceAll("[|/]", "-").replaceAll("[<>\"{}?*\\\\]", "");
     }
 }

@@ -1,11 +1,10 @@
-package cz.tefek.ymd2.background;
+package cz.tefek.ymd2.backend;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import cz.tefek.ymd2.background.progress.ProgressStatus;
-import cz.tefek.ymd2.background.progress.RetrieveProgressWatcher;
-import cz.tefek.ymd2.config.ConfigManager;
+import cz.tefek.ymd2.interconnect.progress.RetrieveProgressWatcher;
+import cz.tefek.ymd2.interconnect.progress.ProgressStatus;
 import cz.tefek.youtubetoolkit.YouTubeRetriever;
 import cz.tefek.youtubetoolkit.YouTubeVideoData;
 
@@ -49,7 +48,7 @@ public class WorkerManager
                 }
                 catch (Exception e)
                 {
-                    watcher.setErrorText("Error: " + e);
+                    watcher.setErrorText("Error: " + e.getMessage());
                     watcher.setStatus(ProgressStatus.FAILED);
                     e.printStackTrace();
                 }
