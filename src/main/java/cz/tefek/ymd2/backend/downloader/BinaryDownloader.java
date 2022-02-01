@@ -68,7 +68,7 @@ public class BinaryDownloader
                 var downloadRequestBuilder = HttpRequest.newBuilder();
                 downloadRequestBuilder.GET();
                 downloadRequestBuilder.header("User-Agent", Configuration.USER_AGENT);
-                var range = String.format("?range=%d-%d", bytesReadTotal, Math.min(bytesReadTotal + CHUNK_SIZE - 1, contentLength - 1));
+                var range = String.format("&range=%d-%d", bytesReadTotal, Math.min(bytesReadTotal + CHUNK_SIZE - 1, contentLength - 1));
                 var newURI = new URI(this.remoteURI.toString() + range);
                 downloadRequestBuilder.uri(newURI);
                 var downloadRequest = downloadRequestBuilder.build();

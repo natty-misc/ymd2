@@ -25,9 +25,7 @@ public class WorkerManager
             var videoData = getVideoData(id, watcher);
 
             if (videoData == null)
-            {
                 return;
-            }
 
             watcher.setVideoData(videoData);
             watcher.setConfig(workerBuilder);
