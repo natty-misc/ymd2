@@ -16,6 +16,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -168,7 +169,7 @@ public class AppMain extends Application
 
     private static void loadFont(String location)
     {
-        Logger.logf(SmartSeverity.ADDED, "Loading font '%s'.%n", location);
+        Logger.logf(SmartSeverity.ADDED, "Loading font '%s' - ", location);
         try (var is = AppMain.class.getResourceAsStream(String.format("/assets/%s.ttf", location)))
         {
             if (is == null)
@@ -177,7 +178,9 @@ public class AppMain extends Application
                 return;
             }
 
-            Font.loadFonts(is, 10);
+            var fonts = Font.loadFonts(is, 10);
+
+            Logger.logf("Loaded %s.%n", String.join(", ", Arrays.stream(fonts).map(font -> font.getFamily() + " " + font.getStyle()).toList()));
         }
         catch (IOException e)
         {

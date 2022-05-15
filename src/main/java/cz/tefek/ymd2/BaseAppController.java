@@ -3,20 +3,23 @@ package cz.tefek.ymd2;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.value.ObservableListValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -70,21 +73,26 @@ public class BaseAppController implements Initializable
         configs.addAll(ConfigManager.getConfigs());
         this.configSelect.setValue(this.configSelect.getItems().get(0));
 
-        this.queuedCountLabel.textProperty().bind(Bindings.size(statuses.filtered(config -> config.get() == ProgressStatus.QUEUED)).asString());
+        this.queuedCountLabel.textProperty().bind(Bindings.size(this.statuses.filtered(config -> config.get() == ProgressStatus.QUEUED)).asString());
 
-        this.progressCountLabel.textProperty().bind(Bindings.size(statuses.filtered(config -> switch (config.get()) {
+        this.progressCountLabel.textProperty().bind(Bindings.size(this.statuses.filtered(config -> switch (config.get()) {
             case CONVERTING_AUDIO, CONVERTING_VIDEO, DOWNLOADING_AUDIO, DOWNLOADING_VIDEO, DELETING_TEMP_FILES, RETRIEVING_METADATA -> true;
             default -> false;
         })).asString());
 
-        this.finishedCountLabel.textProperty().bind(Bindings.size(statuses.filtered(config -> config.get() == ProgressStatus.SUCCESS)).asString());
+        this.finishedCountLabel.textProperty().bind(Bindings.size(this.statuses.filtered(config -> config.get() == ProgressStatus.SUCCESS)).asString());
 
-        this.failedCountLabel.textProperty().bind(Bindings.size(statuses.filtered(config -> config.get() == ProgressStatus.FAILED)).asString());
+        this.failedCountLabel.textProperty().bind(Bindings.size(this.statuses.filtered(config -> config.get() == ProgressStatus.FAILED)).asString());
     }
 
     private void onEdit(ObservableValue<? extends String> prop, String oldValue, String newValue)
     {
-        var videoID = InputValidator.findVideoID(newValue);
+        this.tryAddVideo(newValue);
+    }
+
+    private void tryAddVideo(String value)
+    {
+        var videoID = InputValidator.findVideoID(value);
 
         if (videoID != null)
         {
@@ -103,6 +111,45 @@ public class BaseAppController implements Initializable
         alert.setHeight(250);
         alert.setHeaderText("Report a bug");
         alert.show();
+    }
+
+    @FXML
+    public void addMultipleDialog(ActionEvent event)
+    {
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.setTitle("Add multiple videos...");
+        window.setWidth(500);
+        window.setHeight(300);
+        window.initStyle(StageStyle.UTILITY);
+        var label = new Label("Please enter video URLs, one per line.");
+        label.setPadding(new Insets(5, 5, 5, 5));
+        var textArea = new TextArea();
+        var root = new BorderPane();
+        root.setTop(label);
+        root.setCenter(textArea);
+        var hBox = new HBox();
+        hBox.setAlignment(Pos.CENTER_RIGHT);
+        var cancel = new Button("Cancel");
+        cancel.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cancel, Priority.ALWAYS);
+        cancel.setOnAction(e -> window.close());
+        var confirm = new Button("Confirm");
+        confirm.setFont(Font.font("Open Sans", FontWeight.BOLD, 12));
+        HBox.setHgrow(confirm, Priority.ALWAYS);
+        confirm.setMaxWidth(Double.MAX_VALUE);
+        confirm.setOnAction(e -> {
+            var text = textArea.getText();
+            text.lines().forEach(this::tryAddVideo);
+            window.close();
+        });
+        var hBoxChildren = hBox.getChildren();
+        hBoxChildren.add(cancel);
+        hBoxChildren.add(confirm);
+        root.setBottom(hBox);
+
+        window.setScene(new Scene(root, 500, 300));
+        window.showAndWait();
     }
 
     @FXML
